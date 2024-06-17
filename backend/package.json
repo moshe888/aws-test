@@ -1,0 +1,26 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Colman AWS backend",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ishay3000/colman-aws-project.git"
+  },
+  "author": "Ishay & Moshe",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ishay3000/colman-aws-project/issues"
+  },
+  "homepage": "https://github.com/ishay3000/colman-aws-project#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "mysql": "*",
+    "mysql2": "^3.10.1"
+  }
+}

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Clicker</title>
+    <!-- קישור ל-CSS של Bootstrap כדי להשתמש בעיצוב מובנה -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* קביעת צבע רקע לגוף הדף */
+        body {
+            background-color: #f8f9fa;
+        }
+        /* קביעת עיצוב למיכל המרכזי */
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        /* עיצוב הכפתור של העוגייה */
+        #cookie {
+            width: 150px;
+            height: 150px;
+            background-color: lightblue;
+            border-radius: 50%;
+            font-size: 18px;
+            text-align: center;
+            line-height: 150px;
+            cursor: pointer;
+            margin-top: 20px;
+            display: none;
+        }
+        /* עיצוב מיכל הטופס */
+        .form-container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        /* עיצוב הכפתורים */
+        .btn-primary, .btn-secondary, .btn-success {
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        /* עיצוב הטיימר */
+        #timer {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <form id="gameForm">
+                <div class="form-group">
+                    <!-- שדה שם משתמש -->
+                    <label for="username">Username</label>
+                    <input type="text" class="form-control" id="username" required>
+                </div>
+                <div class="form-group">
+                    <!-- בחירת מצב משחק -->
+                    <label>Game Mode</label><br>
+                    <button type="button" class="btn btn-primary" onclick="selectMode(10)">10 Seconds</button>
+                    <button type="button" class="btn btn-secondary" onclick="selectMode(15)">15 Seconds</button>
+                    <button type="button" class="btn btn-success" onclick="selectMode(30)">30 Seconds</button>
+                </div>
+                <!-- כפתור להתחלת המשחק -->
+                <button type="submit" class="btn btn-dark">Start Game</button>
+            </form>
+        </div>
+        <!-- כפתור העוגייה -->
+        <div id="cookie" class="btn btn-info">Click Me!</div>
+        <!-- טיימר המשחק -->
+        <p id="timer" class="text-center"></p>
+        <!-- כפתור לצפייה בניקוד -->
+        <button id="viewScores" class="btn btn-link">View Scores</button>
+    </div>
+
+    <script>
+        let score = 0;
+        let timeLeft;
+        let timerInterval;
+        let gameMode;
+
+        // פונקציה לבחירת מצב המשחק
+        function selectMode(mode) {
+            gameMode = mode;
+            document.querySelectorAll('.btn-primary, .btn-secondary, .btn-success').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // התחלת המשחק לאחר לחיצה על כפתור "Start Game"
+        document.getElementById('gameForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            if (!username) {
+                alert('Please enter your username');
+                return;
+            }
+            if (!gameMode) {
+                alert('Please select a game mode');
+                return;
+            }
+
+            score = 0;
+            timeLeft = gameMode;
+            document.getElementById('cookie').style.display = 'block';
+            document.getElementById('timer').innerText = `Time remaining: ${timeLeft}`;
+            timerInterval = setInterval(updateTimer, 1000);
+        });
+
+        // עדכון הניקוד בלחיצה על העוגייה
+        document.getElementById('cookie').addEventListener('click', function() {
+            score++;
+            this.innerText = `Score: ${score}`;
+        });
+
+        // עדכון הטיימר כל שנייה
+        function updateTimer() {
+            timeLeft--;
+            document.getElementById('timer').innerText = `Time remaining: ${timeLeft}`;
+            if (timeLeft === 0) {
+                clearInterval(timerInterval);
+                document.getElementById('cookie').style.display = 'none';
+                console.log(JSON.stringify({ username: document.getElementById('username').value, score, mode: gameMode, timestamp: new Date().toISOString() }))
+                fetch('/api/new-score', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+
+                    body: JSON.stringify({ username: document.getElementById('username').value, score, mode: gameMode, timestamp: new Date().toISOString() })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Success:', data);
+                    alert(data.message);
+                    document.getElementById('cookie').innerText = 'Click Me!';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+                
+            }
+        }
+
+        // לחיצה על כפתור "View Scores" לניווט לעמוד הציונים
+        document.getElementById('viewScores').addEventListener('click', function() {
+            window.location.href = 'scores.html';
+        });
+    </script>
+    
+    <!-- קישור ל-JavaScript של Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>
